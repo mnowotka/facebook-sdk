@@ -31,6 +31,10 @@ import base64
 import requests
 import json
 import re
+try:
+    import newrelic.agent
+except ImportError:
+    newrelic = None    
 
 try:
     from urllib.parse import parse_qs, urlencode, urlparse
@@ -391,6 +395,9 @@ class GraphAPIError(Exception):
                     self.message = result
 
         Exception.__init__(self, self.message)
+        if newrelic:
+            newrelic.agent.add_custom_parameter(
+                'fb_graph_api_error', ':'.join([str(self.message), str(self.code)]))
 
 
 def get_user_from_cookie(cookies, app_id, app_secret):
